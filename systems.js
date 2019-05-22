@@ -81,4 +81,5 @@ export default {
   colliderSystem,
   moverSystem,
   drawerSystem,
+  WORKER_COUNT,
 };
