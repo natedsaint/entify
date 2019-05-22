@@ -1,3 +1,33 @@
+// TODO: 
+// 1) split this out
+const Workers = {
+ createWorkers(workerCount, src) {
+    var workers = new Array(workerCount);
+    for (var i = 0; i < workerCount; i++) {
+        workers[i] = new Worker(src);
+    }
+    return workers;
+  },
+  doWork(worker, data, allData) {
+    return new Promise(function(resolve, reject) {
+        worker.onmessage = resolve;
+        worker.postMessage({ chunk: data, allData });
+    });
+  },
+  doDistributedWork(workers, data) {
+    // data size is always a multiple of the number of workers
+    var elementsPerWorker = data.length / workers.length;
+    return Promise.all(workers.map(function(worker, index) {
+        var start = index * elementsPerWorker;
+        return Workers.doWork(worker, data.slice(start, start+elementsPerWorker), data);
+    }));
+  }
+};
+
+const WORKER_COUNT = 5;
+const movers = Workers.createWorkers(WORKER_COUNT, 'mover.js');
+const colliders = Workers.createWorkers(WORKER_COUNT, 'collider.js');
+
 const ECS = {};
 // E
 ECS.allEntities = [];
@@ -82,10 +112,18 @@ ECS.Components.Size = function(radius=0.1) {
 
 ECS.Components.Size.prototype.name = 'size';
 
+ECS.Components.Velocity = function(angle=0, magnitude=1) {
+  this.angle = angle;
+  this.magnitude = magnitude;
+  return this;
+} 
+
+ECS.Components.Velocity.prototype.name = 'velocity';
+
 // Assemblages
 
 ECS.Assemblages = {
-  Dot: function(size, color, position) {
+  Dot: function(size, color, position, velocity) {
     let entity = new ECS.Entity();
     let red = color.r || 0;
     let blue = color.b || 0;
@@ -93,9 +131,12 @@ ECS.Assemblages = {
     let alpha = color.a || 0;
     let posY = position.y;
     let posX = position.x;
+    let velAngle = velocity.angle;
+    let velMagnitude = velocity.magnitude;
     entity.addComponent(new ECS.Components.Color(red, green, blue, alpha));
     entity.addComponent(new ECS.Components.Size(size));
     entity.addComponent(new ECS.Components.Position(posX,posY));
+    entity.addComponent(new ECS.Components.Velocity(velAngle, velMagnitude));
     return entity;
   }
 };
@@ -112,11 +153,20 @@ ECS.start = () => {
 };
 
 // now do work with the update loops
-
-ECS.loop = () => {
-  ECS.loopSystems.forEach((system) => {
-    system.work(ECS.allEntities);
-  });
+let stamp = performance.now();
+let fpscounter = 0;
+ECS.loop = async () => {
+  for (system of ECS.loopSystems) {
+    await system.work(ECS.allEntities);
+  }
+  const newStamp = performance.now();
+  const delta = (newStamp - stamp) / 1000;
+  fpscounter++;
+  if (fpscounter % 10 === 0) {
+    document.querySelector('#fps').innerHTML = Math.round(1/delta) + ' fps';
+    fpscounter = 0;
+  }
+  stamp = newStamp;
   if (ECS.playing) {
     window.requestAnimationFrame(ECS.loop);
   }
@@ -125,7 +175,7 @@ ECS.loop = () => {
 
 // Implementation
 const c = document.getElementById('c');
-const ctx = c.getContext('2d', { alpha: false });
+const ctx = c.getContext('2d', { alpha: true });
 
 c.width = 1024;
 c.height = 1024;
@@ -136,64 +186,58 @@ function getRandomInt(max) {
 
 const generatorSystem = new ECS.System('generator');
 generatorSystem.work = () => {
-  let numDots = 50;
+  let numDots = 200;
   while (numDots--) {
-    // TODO: create random color, and size, and position
     const color = {
        r : getRandomInt(255),
        g : getRandomInt(255), 
        b : getRandomInt(255),
        a : Math.random(),
     };
-    const size = getRandomInt(10);
+    const size = getRandomInt(10) + 3;
     const position = {
       x: getRandomInt(1024),
       y: getRandomInt(1024)
     }
-    new ECS.Assemblages.Dot(size, color, position);
+    const velocity = {
+      angle: getRandomInt(360),
+      magnitude: getRandomInt(5) + 1,
+    }
+    new ECS.Assemblages.Dot(size, color, position, velocity);
   }
   ECS.playing = true;
 };
 
-const moverSystem = new ECS.System('mover');
-moverSystem.getClosestDot = (from) => {
-  const fromId = from.id;
-  const fromPosition = from.components.position;
-  let closestDist = 2048;
-  let closestEntity;
-  ECS.allEntities.forEach((entity) => {
-    if (entity.id !== fromId) {
-      const toPosition = entity.components.position;
-      const distanceX = fromPosition.x - toPosition.x;
-      const distanceY = fromPosition.y - toPosition.y;
-      const dist = Math.sqrt(distanceX ** 2 + distanceY ** 2);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closestEntity = entity;
-      }
-    }
-  });
-  return [closestEntity, closestDist];
+const colliderSystem = new ECS.System('collider');
+
+colliderSystem.work = async () => {
+  return await Workers.doDistributedWork(colliders, ECS.allEntities)
+    .then((results) => {
+      let entities = [];
+      results.forEach((event) => {
+        entities = entities.concat(event.data);
+      });
+      ECS.allEntities = entities;
+      return results;
+    });
 };
-moverSystem.work = () => {
-  ECS.allEntities.forEach((entity) => {
-    const position = entity.components.position;
-    const [targetEntity, targetDistance] = moverSystem.getClosestDot(entity);
-    const targetPosition = targetEntity.components.position;
-    const distanceX = Math.abs(position.x - targetPosition.x);
-    const distanceY = Math.abs(position.y - targetPosition.y);
-    const angle = Math.atan2(position.x - targetPosition.x, position.y - targetPosition.y);
-    let targetX = position.x + Math.cos(angle) * (distanceX / 100);
-    let targetY = position.y + Math.sin(angle) * (distanceY / 100);
-    position.x = Math.max(0, Math.min(1024, targetX));
-    position.y = Math.max(0, Math.min(1024, targetY));
-  });
+
+const moverSystem = new ECS.System('mover');
+
+moverSystem.work = async () => {
+  return await Workers.doDistributedWork(movers, ECS.allEntities)
+    .then((results) => {
+      let entities = [];
+      results.forEach((event) => {
+        entities = entities.concat(event.data);
+      });
+      ECS.allEntities = entities;
+      return results;
+    });
 };
 
 const drawerSystem = new ECS.System('drawer');
-drawerSystem.work = () => {
-  // ctx.fillStyle = '#000000';
-  // ctx.fillRect(0, 0, c.length, c.width);
+drawerSystem.work = async () => {
   ctx.clearRect(0,0,c.width,c.height);
   ECS.allEntities.forEach((entity) => {
     const color = entity.components.color;
@@ -204,8 +248,9 @@ drawerSystem.work = () => {
     ctx.arc(position.x, position.y, size.radius, 0, 2 * Math.PI);
     ctx.fill();
   });
+  return ECS.allEntities;
 };
 
 ECS.startSystems = [generatorSystem];
-ECS.loopSystems = [moverSystem, drawerSystem];
+ECS.loopSystems = [colliderSystem, moverSystem, drawerSystem];
 ECS.start();
