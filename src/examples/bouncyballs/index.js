@@ -1,4 +1,4 @@
-import ECS from './ecs.js';
+import ECS from '../../ecs.js';
 import Systems from './systems.js';
 import Workers from './workers.js';
 

@@ -1,0 +1,29 @@
+{
+  "name": "ecsjs",
+  "version": "0.1.0",
+  "description": "A framework for creating ECS architectures in JavaScript (es6)",
+  "main": "lib/index.js",
+  "scripts": {
+    "prepublish": "babel src --out-dir lib"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/natedsaint/ecjs.git"
+  },
+  "author": "natedsaint@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/natedsaint/ecjs/issues"
+  },
+  "homepage": "https://github.com/natedsaint/ecjs#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-preset-es2015": "^6.24.1"
+  }
+}
