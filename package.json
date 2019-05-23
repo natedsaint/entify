@@ -1,5 +1,5 @@
 {
-  "name": "ecsjs",
+  "name": "entify",
   "version": "0.1.0",
   "description": "A framework for creating ECS architectures in JavaScript (es6)",
   "main": "lib/index.js",
