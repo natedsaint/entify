@@ -1,7 +1,8 @@
 const Workers = {
-  createWorkers(workerCount, src) {
-     var workers = new Array(workerCount);
-     for (var i = 0; i < workerCount; i++) {
+  WORKER_COUNT: 5,
+  createWorkers(src) {
+     var workers = new Array(this.WORKER_COUNT);
+     for (var i = 0; i < this.WORKER_COUNT; i++) {
          workers[i] = new Worker(src);
      }
      return workers;

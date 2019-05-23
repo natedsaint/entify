@@ -1,11 +1,10 @@
 // Components
 const Components = {};
 
-Components.Color = function(r = 0, g = 0, b = 0, a = 0) {
-  this.r = r;
-  this.g = g;
-  this.b = b;
-  this.a = a;
+Components.Color = function(h = 0, s = 0, l = 0) {
+  this.h = h;
+  this.s = s;
+  this.l = l;
   return this;
 };
 
@@ -22,15 +21,15 @@ Components.Position.prototype.name = 'position';
 Components.Size = function(radius=0.1) {
   this.radius = radius;
   return this;
-}
+};
 
 Components.Size.prototype.name = 'size';
 
-Components.Velocity = function(angle=0, magnitude=1) {
-  this.angle = angle;
-  this.magnitude = magnitude;
+Components.Velocity = function(x = 1, y = 1) {
+  this.x = x;
+  this.y = y;
   return this;
-} 
+}; 
 
 Components.Velocity.prototype.name = 'velocity';
 

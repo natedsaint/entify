@@ -6,8 +6,8 @@ self.onmessage = (event) => {
   entities.forEach((entity) => {
     const position = entity.components.position;
     const velocity = entity.components.velocity;
-    let targetX = position.x + Math.cos(velocity.angle) * velocity.magnitude;
-    let targetY = position.y + Math.sin(velocity.angle) * velocity.magnitude;
+    let targetX = position.x + velocity.x;
+    let targetY = position.y + velocity.y;
     position.x = targetX;
     position.y = targetY;
   });

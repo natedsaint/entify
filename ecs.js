@@ -53,8 +53,30 @@ ECS.start = () => {
   ECS.startSystems.forEach((system) => {
     system.work(ECS.allEntities);
   });
+  ECS.loopSystems.forEach((system) => {
+    system.setup();
+  });
   ECS.playing = true;
   window.requestAnimationFrame(ECS.loop);
+};
+
+ECS.restart = () => {
+  ECS.playing = false;
+  setTimeout(ECS.reset, 20);
+  setTimeout(ECS.start, 30);
+};
+
+ECS.pause = () => {
+  ECS.playing = false;
+};
+
+ECS.play = () => {
+  ECS.playing = true;
+  window.requestAnimationFrame(ECS.loop);
+};
+
+ECS.reset = () => {
+  ECS.allEntities.length = 0;
 };
 
 // now do work with the update loops
