@@ -62,8 +62,7 @@ ECS.start = () => {
 
 ECS.restart = () => {
   ECS.playing = false;
-  setTimeout(ECS.reset, 20);
-  setTimeout(ECS.start, 30);
+  requestAnimationFrame(ECS.reset);
 };
 
 ECS.pause = () => {
@@ -77,6 +76,7 @@ ECS.play = () => {
 
 ECS.reset = () => {
   ECS.allEntities.length = 0;
+  requestAnimationFrame(ECS.start);
 };
 
 // now do work with the update loops

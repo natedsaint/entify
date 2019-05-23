@@ -21,7 +21,7 @@ generatorSystem.work = () => {
     const color = {
        h : getRandomInt(360),
        s : '60%', 
-       l : '40%',
+       l : '50%',
     };
     const size = getRandomInt(10) + 3;
     if (col < cols) {
