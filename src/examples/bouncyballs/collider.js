@@ -22,8 +22,11 @@ self.onmessage = (event) => {
         const otherPosition = otherEntity.components.position;
         const otherRadius = otherEntity.components.size.radius;
         const otherVelocity = otherEntity.components.velocity;
-        const intersects = Math.hypot(position.x-otherPosition.x, position.y - otherPosition.y) <= (radius + otherRadius);
-        if (intersects) {
+        // TODO add velocity here to figure out if it'll intersect in the next step
+        const newPosition = { x: position.x + velocity.x, y : position.y + velocity.y };
+        const newOtherPosition = { x: otherPosition.x + otherVelocity.x, y : otherPosition.y + otherVelocity.y };
+        const willIntersect = Math.hypot(newPosition.x-newOtherPosition.x, newPosition.y - newOtherPosition.y) <= (radius + otherRadius);
+        if (willIntersect) {
           // approximate spherical mass
           const molecules1 = 4 * Math.PI * (radius ** 2);
           const mass1 = molecules1 * 0.1;
