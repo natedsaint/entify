@@ -4,15 +4,16 @@ self.onmessage = (event) => {
   }
   const entities = event.data.chunk;
   const allEntities = event.data.allData;
+  const globals = JSON.parse(event.data.globals);
   entities.forEach((entity) => {
     const position = entity.components.position;
     const radius = entity.components.size.radius;
     const velocity = entity.components.velocity;
     // horizontal wall
-    if (position.y + radius > 1024 || position.y - radius < 0) {
+    if (position.y + radius > globals.height || position.y - radius < 0) {
       velocity.y *= -1;
     // vertical wall
-    } else if (position.x + radius > 1024 || position.x - radius < 0) {
+    } else if (position.x + radius > globals.width || position.x - radius < 0) {
       velocity.x *= -1;
     } else {
       allEntities.forEach((otherEntity) => {
