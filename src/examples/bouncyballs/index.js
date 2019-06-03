@@ -58,3 +58,7 @@ document.querySelector('#restart').addEventListener('click', async () => {
   ECS.restart();
   document.querySelector('#pause').innerHTML = PAUSE_TXT;
 });
+
+c.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+});

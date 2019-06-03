@@ -17,6 +17,15 @@ ECS.Entity = function () {
 };
 ECS.Entity.prototype.count = 0;
 
+ECS.Entity.destroy = function(id) {
+  const idx = ECS.allEntities.findIndex((entity) => {
+    return entity.id === id;
+  });
+  if (idx) {
+    ECS.allEntities.splice(idx, 1);
+  }
+};
+
 ECS.Entity.prototype.print = function () {
   console.log(JSON.stringify(this, null, 4));
   return this;

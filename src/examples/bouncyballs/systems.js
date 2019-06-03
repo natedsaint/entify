@@ -76,23 +76,35 @@ drawerSystem.setup = () => {
 const clickerSystem = new ECS.System('clicker');
 clickerSystem.work = async () => {
   clickerSystem.clicks.forEach((click) => {
-    const size = getRandomInt(10) + 3;
-    const color = {
-      h : getRandomInt(360),
-      s : '60%', 
-      l : '50%',
-    };
-    const position = {
-      x: click[0],
-      y: click[1],
-    };
-    const xSign = (!!getRandomInt(1)) ? 1 : -1;
-    const ySign = (!!getRandomInt(1)) ? 1 : -1;
-    const velocity = {
-      x: getRandomInt(6) + 1 * xSign,
-      y: getRandomInt(6) + 1 * ySign,
-    };
-    new Assemblages.Dot(size, color, position, velocity);
+    if (click[2] === 0) {
+      const size = getRandomInt(10) + 3;
+      const color = {
+        h : getRandomInt(360),
+        s : '60%', 
+        l : '50%',
+      };
+      const position = {
+        x: click[0],
+        y: click[1],
+      };
+      const xSign = (!!getRandomInt(1)) ? 1 : -1;
+      const ySign = (!!getRandomInt(1)) ? 1 : -1;
+      const velocity = {
+        x: getRandomInt(6) + 1 * xSign,
+        y: getRandomInt(6) + 1 * ySign,
+      };
+      new Assemblages.Dot(size, color, position, velocity);
+    } else if (click[2] === 2) { // right click
+      ECS.allEntities.forEach((dot) => {
+        const [mouseX, mouseY] = click;
+        const { x, y } = dot.components.position;
+        const { radius } = dot.components.size;
+        const intersect = Math.hypot(mouseX-x, mouseY - y) <= (1 + radius);
+        if (intersect) {
+          ECS.Entity.destroy(dot.id);
+        }
+      });
+    }
   });
   clickerSystem.clicks.length = 0;
 };
@@ -101,12 +113,12 @@ clickerSystem.setup = () => {
   let mousedown = false;
   clickerSystem.clicks = [];
   ECS.globals.c.addEventListener('mousedown', (event) => {
-    mousedown = true;
-    clickerSystem.clicks.push([event.layerX, event.layerY]);
+    mousedown = event.button;
+    clickerSystem.clicks.push([event.layerX, event.layerY, event.button]);
   });
   ECS.globals.c.addEventListener('mousemove', (event) => {
-    if (mousedown) {
-      clickerSystem.clicks.push([event.layerX, event.layerY]);
+    if (mousedown === 0 || mousedown === 2) {
+      clickerSystem.clicks.push([event.layerX, event.layerY, mousedown]);
     }
   });
   ECS.globals.c.addEventListener('mouseup', () => {
