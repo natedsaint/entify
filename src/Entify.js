@@ -1,44 +1,44 @@
 import Workers from './workers.js';
-const ECS = {};
-Workers.ECS = ECS;
+const Entify = {};
+Workers.Entify = Entify;
 
 // namespace to store some stuff to get passed to all systems and their workers
-ECS.globals = {};
+Entify.globals = {};
 
 // E
-ECS.allEntities = [];
-ECS.Entity = function () {
+Entify.allEntities = [];
+Entify.Entity = function () {
   this.id = (+new Date()).toString(16) + 
   (Math.random() * 100000000 | 0).toString(16) +
-  ECS.Entity.prototype.count;
-  ECS.Entity.prototype.count++;
+  Entify.Entity.prototype.count;
+  Entify.Entity.prototype.count++;
   this.components = {};
-  ECS.allEntities.push(this);
+  Entify.allEntities.push(this);
   return this;
 };
-ECS.Entity.prototype.count = 0;
+Entify.Entity.prototype.count = 0;
 
-ECS.Entity.destroy = function(id) {
-  const idx = ECS.allEntities.findIndex((entity) => {
+Entify.Entity.destroy = function(id) {
+  const idx = Entify.allEntities.findIndex((entity) => {
     return entity.id === id;
   });
   if (idx) {
-    ECS.allEntities.splice(idx, 1);
+    Entify.allEntities.splice(idx, 1);
   }
 };
 
-ECS.Entity.prototype.print = function () {
+Entify.Entity.prototype.print = function () {
   console.log(JSON.stringify(this, null, 4));
   return this;
 };
 
 // C
-ECS.Entity.prototype.addComponent = function ( component ){
+Entify.Entity.prototype.addComponent = function ( component ){
   this.components[component.name] = component;
   return this;
 };
 
-ECS.Entity.prototype.removeComponent = function ( componentName ){
+Entify.Entity.prototype.removeComponent = function ( componentName ){
   var name = componentName; // assume a string was passed in
 
   if(typeof componentName === 'function'){ 
@@ -49,22 +49,22 @@ ECS.Entity.prototype.removeComponent = function ( componentName ){
   return this;
 };
 
-ECS.Components = {}; 
+Entify.Components = {}; 
 
 // S
-ECS.AllSystems = [];
-ECS.System = function(name) {
+Entify.AllSystems = [];
+Entify.System = function(name) {
   this.setName(name);
   this.work = () => {};
   this.setup = () => {};
   this.postSetup = () => {};
   this.cleanup = () => {};
-  this.globals = ECS.globals; // systems can use this directly but just in case, make a reference
-  ECS.AllSystems.push(this);
+  this.globals = Entify.globals; // systems can use this directly but just in case, make a reference
+  Entify.AllSystems.push(this);
   return this;
 };
 
-ECS.System.prototype.setName = function(name) {
+Entify.System.prototype.setName = function(name) {
   this.name = name;
   return this;
 };
@@ -72,7 +72,7 @@ ECS.System.prototype.setName = function(name) {
 // NOTE: this overrides the setup, cleanup and work functions
 // initData is thunk that returns an object in the form 
 //   {data: data, transferrables: transferrables}
-ECS.System.prototype.workify = function(workerScript, numberOfWorkers, getInitData) {
+Entify.System.prototype.workify = function(workerScript, numberOfWorkers, getInitData) {
   const oldSetup = this.setup.bind(this);
   this.setup = async () => {
     await oldSetup();
@@ -82,8 +82,8 @@ ECS.System.prototype.workify = function(workerScript, numberOfWorkers, getInitDa
       });
       this.workers.length = 0;
     }
-    const numWorkers = numberOfWorkers || ECS.globals.workerCount;
-    Workers.globals = ECS.globals;
+    const numWorkers = numberOfWorkers || Entify.globals.workerCount;
+    Workers.globals = Entify.globals;
     this.workers = Workers.createWorkers(numWorkers, workerScript);
     // in the event your worker(s) need initialization
     if (getInitData) {
@@ -102,13 +102,13 @@ ECS.System.prototype.workify = function(workerScript, numberOfWorkers, getInitDa
   this.oldWork = this.work;
   this.work = async () => {
     await this.oldWork();
-    return await Workers.doDistributedWork(this.workers, ECS.allEntities)
+    return await Workers.doDistributedWork(this.workers, Entify.allEntities)
       .then((results) => {
         let entities = [];
         results.forEach((event) => {
           entities = entities.concat(event.data);
         });
-        ECS.allEntities = entities;
+        Entify.allEntities = entities;
         return results;
       });
   };
@@ -129,57 +129,57 @@ ECS.System.prototype.workify = function(workerScript, numberOfWorkers, getInitDa
   };
 };
 
-ECS.start = async () => {
-  for (const system of ECS.startSystems) {
-    await system.work(ECS.allEntities);
+Entify.start = async () => {
+  for (const system of Entify.startSystems) {
+    await system.work(Entify.allEntities);
   }
-  for (const system of ECS.loopSystems) {
+  for (const system of Entify.loopSystems) {
     await system.setup();
   }
-  ECS.playing = true;
-  window.requestAnimationFrame(ECS.loop);
+  Entify.playing = true;
+  window.requestAnimationFrame(Entify.loop);
 };
 
-ECS.restart = async () => {
-  ECS.playing = false;
-  await ECS.reset();
-  window.requestAnimationFrame(ECS.start);
+Entify.restart = async () => {
+  Entify.playing = false;
+  await Entify.reset();
+  window.requestAnimationFrame(Entify.start);
 };
 
-ECS.pause = () => {
-  ECS.playing = false;
+Entify.pause = () => {
+  Entify.playing = false;
 };
 
-ECS.play = () => {
-  ECS.playing = true;
-  window.requestAnimationFrame(ECS.loop);
+Entify.play = () => {
+  Entify.playing = true;
+  window.requestAnimationFrame(Entify.loop);
 };
 
-ECS.reset = async () => {
-  for (const system of ECS.startSystems) {
+Entify.reset = async () => {
+  for (const system of Entify.startSystems) {
     await system.cleanup();
   }
-  for (const system of ECS.loopSystems) {
+  for (const system of Entify.loopSystems) {
     await system.cleanup();
   }
-  ECS.allEntities.length = 0;
+  Entify.allEntities.length = 0;
   return;
 };
 
 // now do work with the update loops
 let stamp = performance.now();
 
-ECS.loop = async () => {
-  for (let system of ECS.loopSystems) {
-    await system.work(ECS.allEntities);
+Entify.loop = async () => {
+  for (let system of Entify.loopSystems) {
+    await system.work(Entify.allEntities);
   }
   const newStamp = performance.now();
   const delta = (newStamp - stamp) / 1000;
-  ECS.fps = Math.round(1/delta);
+  Entify.fps = Math.round(1/delta);
   stamp = newStamp;
-  if (ECS.playing) {
-    window.requestAnimationFrame(ECS.loop);
+  if (Entify.playing) {
+    window.requestAnimationFrame(Entify.loop);
   }
 };
 
-export default ECS;
+export default Entify;

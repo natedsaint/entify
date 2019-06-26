@@ -1,4 +1,4 @@
-import ECS from '../../ecs.js';
+import Entify from './Entify.js';
 import Systems from './systems.js';
 
 let c;
@@ -8,21 +8,21 @@ let PLAY_TXT = '&#9654;';
 
 // Implementation
 
-ECS.globals.width = 800;
-ECS.globals.height = 600;
+Entify.globals.width = 800;
+Entify.globals.height = 600;
 
 // gonna use a canvas on the page
 c = document.getElementById('c');
-c.width = ECS.globals.width;
-c.height = ECS.globals.height;
+c.width = Entify.globals.width;
+c.height = Entify.globals.height;
 if (c.transferControlToOffscreen) {
-  ECS.globals.offscreen = true;
+  Entify.globals.offscreen = true;
 } else {
-  ECS.globals.offscreen = false;
+  Entify.globals.offscreen = false;
 }
 
 // now we need to pass the canvas/context into places that need it
-ECS.globals.c = c;
+Entify.globals.c = c;
 // we can get c.width and height most places, but not in workers
 
 
@@ -30,10 +30,10 @@ ECS.globals.c = c;
 Systems.generatorSystem.numDots = 200;
 
 // register start systems
-ECS.startSystems = [Systems.generatorSystem];
+Entify.startSystems = [Systems.generatorSystem];
 
 // register loop systems
-ECS.loopSystems = [
+Entify.loopSystems = [
   Systems.colliderSystem,
   Systems.moverSystem,
   Systems.drawerSystem,
@@ -41,23 +41,23 @@ ECS.loopSystems = [
 ];
 
 // let's party!
-ECS.start();
+Entify.start();
 
 // let the user party!
 document.querySelector('#pause').addEventListener('click', (event) => {
-  if (ECS.playing) {
-    ECS.pause();
+  if (Entify.playing) {
+    Entify.pause();
     event.target.innerHTML = PLAY_TXT;
   } else {
-    ECS.play();
+    Entify.play();
     event.target.innerHTML = PAUSE_TXT;
   }
 });
 document.querySelector('#restart').addEventListener('click', async () => {
-  ECS.pause();
+  Entify.pause();
   Systems.generatorSystem.numDots = parseInt(document.querySelector('#dotsInput').value);
-  ECS.globals.workerCount = parseInt(document.querySelector('#workersInput').value);
-  ECS.restart();
+  Entify.globals.workerCount = parseInt(document.querySelector('#workersInput').value);
+  Entify.restart();
   document.querySelector('#pause').innerHTML = PAUSE_TXT;
 });
 

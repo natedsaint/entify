@@ -1,4 +1,4 @@
-import ECS from './ecs.js';
+import Entify from './Entify.js';
 import Assemblages from './assemblages.js';
 import Utils from './util.js';
 
@@ -6,7 +6,7 @@ const getRandomInt = Utils.getRandomInt;
 
 // setup configs
 
-const generatorSystem = new ECS.System('generator');
+const generatorSystem = new Entify.System('generator');
 
 generatorSystem.work = () => {
   let numDots = generatorSystem.numDots;
@@ -43,30 +43,30 @@ generatorSystem.work = () => {
   }
 };
 
-const colliderSystem = new ECS.System('collider');
+const colliderSystem = new Entify.System('collider');
 
 colliderSystem.workify('collider.js');
 
-const moverSystem = new ECS.System('mover');
+const moverSystem = new Entify.System('mover');
 
 moverSystem.workify('mover.js');
 
-const drawerSystem = new ECS.System('drawer');
+const drawerSystem = new Entify.System('drawer');
 
 drawerSystem.setup = async () => {
-  if (!ECS.globals.offscreen) {
-    ECS.globals.ctx = ECS.globals.c.getContext('2d', { alpha: true });
+  if (!Entify.globals.offscreen) {
+    Entify.globals.ctx = Entify.globals.c.getContext('2d', { alpha: true });
     drawerSystem.perfCounter = 0;
     return;
   }
 };
 
 drawerSystem.work = async () => {
-  if (!ECS.globals.offscreen) {
-    const ctx = ECS.globals.ctx;
+  if (!Entify.globals.offscreen) {
+    const ctx = Entify.globals.ctx;
     drawerSystem.perfCounter++;
-    ctx.clearRect(0,0,ECS.globals.c.width,ECS.globals.c.height);
-    ECS.allEntities.forEach((entity) => {
+    ctx.clearRect(0,0,Entify.globals.c.width,Entify.globals.c.height);
+    Entify.allEntities.forEach((entity) => {
       const color = entity.components.color;
       const size = entity.components.size;
       const position = entity.components.position;
@@ -78,29 +78,29 @@ drawerSystem.work = async () => {
       ctx.fill();
     });
     if (drawerSystem.perfCounter % 30 === 0 ||
-      (!drawerSystem.perfText && ECS.fps)) {
+      (!drawerSystem.perfText && Entify.fps)) {
       drawerSystem.perfCounter = 0;
-      drawerSystem.perfText = ECS.fps + ' fps';
+      drawerSystem.perfText = Entify.fps + ' fps';
     }
     ctx.font = '32px helvetica';
     ctx.fillStyle = '#fff';
     ctx.fillText(drawerSystem.perfText, 10, 50);
   }
-  return ECS.allEntities;
+  return Entify.allEntities;
 };
 
 // you can't transfer the offscreen canvas to multiple workers... yet?
 // you also have make a new canvas to pass to the new worker thread
 drawerSystem.workify('drawer.js', 1, () => {
-  if (ECS.globals.offscreen) {
-    const canvas = ECS.globals.c;
+  if (Entify.globals.offscreen) {
+    const canvas = Entify.globals.c;
     const newCanvas = canvas.cloneNode();
     const canvasParent = canvas.parentNode;
     canvasParent.removeChild(canvas);
     canvasParent.appendChild(newCanvas);
-    ECS.globals.c = newCanvas;
+    Entify.globals.c = newCanvas;
   
-    const offscreen = ECS.globals.c.transferControlToOffscreen();
+    const offscreen = Entify.globals.c.transferControlToOffscreen();
     return {
       data: offscreen, 
       transferrables: offscreen,
@@ -109,7 +109,7 @@ drawerSystem.workify('drawer.js', 1, () => {
   return false;
 });
 
-const clickerSystem = new ECS.System('clicker');
+const clickerSystem = new Entify.System('clicker');
 clickerSystem.work = async () => {
   clickerSystem.clicks.forEach((click) => {
     if (click[2] === 0) {
@@ -131,13 +131,13 @@ clickerSystem.work = async () => {
       };
       new Assemblages.Dot(size, color, position, velocity);
     } else if (click[2] === 2) { // right click
-      ECS.allEntities.forEach((dot) => {
+      Entify.allEntities.forEach((dot) => {
         const [mouseX, mouseY] = click;
         const { x, y } = dot.components.position;
         const { radius } = dot.components.size;
         const intersect = Math.hypot(mouseX-x, mouseY - y) <= (1 + radius);
         if (intersect) {
-          ECS.Entity.destroy(dot.id);
+          Entify.Entity.destroy(dot.id);
         }
       });
     }
@@ -148,16 +148,16 @@ clickerSystem.work = async () => {
 clickerSystem.setup = () => {
   let mousedown = false;
   clickerSystem.clicks = [];
-  ECS.globals.c.addEventListener('mousedown', (event) => {
+  Entify.globals.c.addEventListener('mousedown', (event) => {
     mousedown = event.button;
     clickerSystem.clicks.push([event.layerX, event.layerY, event.button]);
   });
-  ECS.globals.c.addEventListener('mousemove', (event) => {
+  Entify.globals.c.addEventListener('mousemove', (event) => {
     if (mousedown === 0 || mousedown === 2) {
       clickerSystem.clicks.push([event.layerX, event.layerY, mousedown]);
     }
   });
-  ECS.globals.c.addEventListener('mouseup', () => {
+  Entify.globals.c.addEventListener('mouseup', () => {
     mousedown = false;
   });
 };

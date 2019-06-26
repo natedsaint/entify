@@ -1,5 +1,5 @@
 const Workers = {
-  ECS: {},
+  Entify: {},
   globals: {},
   workerCount: 0,
   async destroyWorker(worker) {
@@ -22,7 +22,7 @@ const Workers = {
       worker.postMessage({ 
         chunk: data,
         allData,
-        fps: Workers.ECS.fps,
+        fps: Workers.Entify.fps,
         globals: JSON.stringify(Workers.globals),
       });
     });
