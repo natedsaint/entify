@@ -1,8 +1,8 @@
 {
   "name": "entify",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A framework for creating ECS architectures in JavaScript (es6)",
-  "main": "lib/index.js",
+  "main": "lib/Entify.js",
   "scripts": {
     "prepublish": "babel src --out-dir lib"
   },
