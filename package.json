@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/natedsaint/ecjs.git"
+    "url": "git+https://github.com/natedsaint/entify.git"
   },
   "author": "natedsaint@gmail.com",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/natedsaint/ecjs/issues"
+    "url": "https://github.com/natedsaint/entify/issues"
   },
-  "homepage": "https://github.com/natedsaint/ecjs#readme",
+  "homepage": "https://github.com/natedsaint/entify#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
