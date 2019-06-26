@@ -53,21 +53,60 @@ moverSystem.workify('mover.js');
 
 const drawerSystem = new ECS.System('drawer');
 
+drawerSystem.setup = async () => {
+  if (!ECS.globals.offscreen) {
+    ECS.globals.ctx = ECS.globals.c.getContext('2d', { alpha: true });
+    drawerSystem.perfCounter = 0;
+    return;
+  }
+};
+
+drawerSystem.work = async () => {
+  if (!ECS.globals.offscreen) {
+    const ctx = ECS.globals.ctx;
+    drawerSystem.perfCounter++;
+    ctx.clearRect(0,0,ECS.globals.c.width,ECS.globals.c.height);
+    ECS.allEntities.forEach((entity) => {
+      const color = entity.components.color;
+      const size = entity.components.size;
+      const position = entity.components.position;
+      ctx.beginPath();
+      ctx.fillStyle = `hsl(${color.h}, ${color.s}, ${color.l})`;
+      ctx.strokeStyle = `hsl(${color.h + 180}, ${color.s}, ${color.l})`;
+      ctx.arc(position.x, position.y, size.radius, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.fill();
+    });
+    if (drawerSystem.perfCounter % 30 === 0 ||
+      (!drawerSystem.perfText && ECS.fps)) {
+      drawerSystem.perfCounter = 0;
+      drawerSystem.perfText = ECS.fps + ' fps';
+    }
+    ctx.font = '32px helvetica';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(drawerSystem.perfText, 10, 50);
+  }
+  return ECS.allEntities;
+};
+
 // you can't transfer the offscreen canvas to multiple workers... yet?
 // you also have make a new canvas to pass to the new worker thread
 drawerSystem.workify('drawer.js', 1, () => {
-  const canvas = ECS.globals.c;
-  const newCanvas = canvas.cloneNode();
-  const canvasParent = canvas.parentNode;
-  canvasParent.removeChild(canvas);
-  canvasParent.appendChild(newCanvas);
-  ECS.globals.c = newCanvas;
-
-  const offscreen = ECS.globals.c.transferControlToOffscreen();
-  return {
-    data: offscreen, 
-    transferrables: offscreen,
-  };
+  if (ECS.globals.offscreen) {
+    const canvas = ECS.globals.c;
+    const newCanvas = canvas.cloneNode();
+    const canvasParent = canvas.parentNode;
+    canvasParent.removeChild(canvas);
+    canvasParent.appendChild(newCanvas);
+    ECS.globals.c = newCanvas;
+  
+    const offscreen = ECS.globals.c.transferControlToOffscreen();
+    return {
+      data: offscreen, 
+      transferrables: offscreen,
+    };
+  }
+  return false;
 });
 
 const clickerSystem = new ECS.System('clicker');

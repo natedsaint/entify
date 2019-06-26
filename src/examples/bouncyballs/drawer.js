@@ -10,7 +10,7 @@ self.onmessage = (event) => {
     canvas = event.data.transferrables;
     ctx = canvas.getContext('2d', { alpha: true });
     self.postMessage({success: true});
-  } else {
+  } else if (ctx) {
     ctx.clearRect(0,0,canvas.width, canvas.height);
   
     const entities = event.data.chunk;
@@ -29,12 +29,12 @@ self.onmessage = (event) => {
 
     perfCounter++;
     if (perfCounter % 30 === 0 || (!perfText && event.data.fps)) {
+      perfCounter = 0;
       perfText = event.data.fps + ' fps';
     }
     ctx.font = '32px helvetica';
     ctx.fillStyle = '#fff';
     ctx.fillText(perfText, 10, 50);
-
-    self.postMessage(entities);
-  }  
+  }
+  self.postMessage(event.data.chunk);
 };

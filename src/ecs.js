@@ -89,7 +89,9 @@ ECS.System.prototype.workify = function(workerScript, numberOfWorkers, getInitDa
     if (getInitData) {
       for (let worker of this.workers) {
         const initData = getInitData();
-        await Workers.doInit(worker, initData.data, initData.transferrables);
+        if (initData) {
+          await Workers.doInit(worker, initData.data, initData.transferrables);
+        }
       }
       return;
     } else {

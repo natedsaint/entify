@@ -15,6 +15,11 @@ ECS.globals.height = 600;
 c = document.getElementById('c');
 c.width = ECS.globals.width;
 c.height = ECS.globals.height;
+if (c.transferControlToOffscreen) {
+  ECS.globals.offscreen = true;
+} else {
+  ECS.globals.offscreen = false;
+}
 
 // now we need to pass the canvas/context into places that need it
 ECS.globals.c = c;
