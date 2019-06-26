@@ -11,7 +11,6 @@ const generatorSystem = new ECS.System('generator');
 generatorSystem.work = () => {
   let numDots = generatorSystem.numDots;
   let ratio = c.width / c.height;
-  // TODO: still doesn't look right, find out why
   let cols = Math.ceil(Math.sqrt(numDots * ratio));
   let rows = Math.ceil(Math.sqrt(numDots / ratio));
   let pixelsPerCol = c.width/cols;
@@ -53,25 +52,23 @@ const moverSystem = new ECS.System('mover');
 moverSystem.workify('mover.js');
 
 const drawerSystem = new ECS.System('drawer');
-drawerSystem.work = async () => {
-  drawerSystem.globals.ctx.clearRect(0,0,ECS.globals.c.width,ECS.globals.c.height);
-  ECS.allEntities.forEach((entity) => {
-    const color = entity.components.color;
-    const size = entity.components.size;
-    const position = entity.components.position;
-    ECS.globals.ctx.beginPath();
-    ECS.globals.ctx.fillStyle = `hsl(${color.h}, ${color.s}, ${color.l})`;
-    ECS.globals.ctx.strokeStyle = `hsl(${color.h + 180}, ${color.s}, ${color.l})`;
-    ECS.globals.ctx.arc(position.x, position.y, size.radius, 0, 2 * Math.PI);
-    ECS.globals.ctx.stroke();
-    ECS.globals.ctx.fill();
-  });
-  return ECS.allEntities;
-};
 
-drawerSystem.setup = () => {
-  ECS.globals.ctx.clearRect(0,0,ECS.globals.c.width,ECS.globals.c.height);
-};
+// you can't transfer the offscreen canvas to multiple workers... yet?
+// you also have make a new canvas to pass to the new worker thread
+drawerSystem.workify('drawer.js', 1, () => {
+  const canvas = ECS.globals.c;
+  const newCanvas = canvas.cloneNode();
+  const canvasParent = canvas.parentNode;
+  canvasParent.removeChild(canvas);
+  canvasParent.appendChild(newCanvas);
+  ECS.globals.c = newCanvas;
+
+  const offscreen = ECS.globals.c.transferControlToOffscreen();
+  return {
+    data: offscreen, 
+    transferrables: offscreen,
+  };
+});
 
 const clickerSystem = new ECS.System('clicker');
 clickerSystem.work = async () => {
@@ -126,31 +123,10 @@ clickerSystem.setup = () => {
   });
 };
 
-const perfSystem = new ECS.System('perf');
-perfSystem.setup = () => {
-  perfSystem.fpsCounter = 0;
-  perfSystem.fpsText = '';
-  perfSystem.textStyle = '32px helvetica';
-  perfSystem.textColor = '#fff';
-};
-
-perfSystem.work = () => {
-  perfSystem.fpsCounter++;
-  ECS.globals.ctx.font = perfSystem.textStyle;
-  ECS.globals.ctx.fillStyle = perfSystem.textColor;
-  ECS.globals.ctx.fillText(perfSystem.fpsText, 10, 50);
-  // only update it every 10 frames
-  if (perfSystem.fpsCounter % 10 === 0) {
-    perfSystem.fpsText = ECS.fps;
-    perfSystem.fpsCounter = 0;
-  }
-};
-
 export default {
   generatorSystem,
   colliderSystem,
   moverSystem,
   drawerSystem,
   clickerSystem,
-  perfSystem,
 };

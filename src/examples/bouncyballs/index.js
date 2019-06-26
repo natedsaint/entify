@@ -2,26 +2,24 @@ import ECS from '../../ecs.js';
 import Systems from './systems.js';
 
 let c;
-let ctx;
 
 let PAUSE_TXT = '&#10074; &#10074;';
 let PLAY_TXT = '&#9654;';
 
 // Implementation
 
-// gonna use a canvas on the page
-c = document.getElementById('c');
-ctx = c.getContext('2d', { alpha: true });
-
-// now we need to pass the canvas/context into places that need it
-ECS.globals.c = c;
-ECS.globals.ctx = ctx;
-// we can get c.width and height most places, but not in workers
 ECS.globals.width = 800;
 ECS.globals.height = 600;
 
+// gonna use a canvas on the page
+c = document.getElementById('c');
 c.width = ECS.globals.width;
 c.height = ECS.globals.height;
+
+// now we need to pass the canvas/context into places that need it
+ECS.globals.c = c;
+// we can get c.width and height most places, but not in workers
+
 
 // initial numDots (changed with form on page)
 Systems.generatorSystem.numDots = 200;
@@ -35,7 +33,6 @@ ECS.loopSystems = [
   Systems.moverSystem,
   Systems.drawerSystem,
   Systems.clickerSystem,
-  Systems.perfSystem,
 ];
 
 // let's party!

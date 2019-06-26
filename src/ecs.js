@@ -1,5 +1,6 @@
 import Workers from './workers.js';
 const ECS = {};
+Workers.ECS = ECS;
 
 // namespace to store some stuff to get passed to all systems and their workers
 ECS.globals = {};
@@ -49,13 +50,14 @@ ECS.Entity.prototype.removeComponent = function ( componentName ){
 };
 
 ECS.Components = {}; 
-// S
 
+// S
 ECS.AllSystems = [];
 ECS.System = function(name) {
   this.setName(name);
   this.work = () => {};
   this.setup = () => {};
+  this.postSetup = () => {};
   this.cleanup = () => {};
   this.globals = ECS.globals; // systems can use this directly but just in case, make a reference
   ECS.AllSystems.push(this);
@@ -68,10 +70,12 @@ ECS.System.prototype.setName = function(name) {
 };
 
 // NOTE: this overrides the setup, cleanup and work functions
-ECS.System.prototype.workify = function(workerScript, numberOfWorkers) {
-  this.oldSetup = this.setup;
+// initData is thunk that returns an object in the form 
+//   {data: data, transferrables: transferrables}
+ECS.System.prototype.workify = function(workerScript, numberOfWorkers, getInitData) {
+  const oldSetup = this.setup.bind(this);
   this.setup = async () => {
-    await this.oldSetup();
+    await oldSetup();
     if (this.workers && this.workers.length) {
       this.workers.forEach((worker) => {
         worker.terminate();
@@ -81,6 +85,16 @@ ECS.System.prototype.workify = function(workerScript, numberOfWorkers) {
     const numWorkers = numberOfWorkers || ECS.globals.workerCount;
     Workers.globals = ECS.globals;
     this.workers = Workers.createWorkers(numWorkers, workerScript);
+    // in the event your worker(s) need initialization
+    if (getInitData) {
+      for (let worker of this.workers) {
+        const initData = getInitData();
+        await Workers.doInit(worker, initData.data, initData.transferrables);
+      }
+      return;
+    } else {
+      return;
+    }
   };
 
   this.oldWork = this.work;
@@ -101,16 +115,25 @@ ECS.System.prototype.workify = function(workerScript, numberOfWorkers) {
   this.cleanup = async () => {
     await this.oldCleanup();
     if (this.workers && this.workers.length) {
-      await Promise.all(this.workers.map(worker => worker.promise));
-      await Promise.all(this.workers.map(worker => worker.terminate()));
+      for (const worker of this.workers) {
+        await worker.promise;
+      }
+      for (const worker of this.workers) {
+        await Workers.destroyWorker(worker);
+      }
       this.workers.length = 0;
     }
+    return;
   };
 };
 
 ECS.start = async () => {
-  await Promise.all(ECS.startSystems.map(system => system.work(ECS.allEntities)));
-  await Promise.all(ECS.loopSystems.map((system) => system.setup()));
+  for (const system of ECS.startSystems) {
+    await system.work(ECS.allEntities);
+  }
+  for (const system of ECS.loopSystems) {
+    await system.setup();
+  }
   ECS.playing = true;
   window.requestAnimationFrame(ECS.loop);
 };
@@ -118,7 +141,7 @@ ECS.start = async () => {
 ECS.restart = async () => {
   ECS.playing = false;
   await ECS.reset();
-  ECS.start();
+  window.requestAnimationFrame(ECS.start);
 };
 
 ECS.pause = () => {
@@ -131,9 +154,14 @@ ECS.play = () => {
 };
 
 ECS.reset = async () => {
-  await Promise.all(ECS.startSystems.map(system => system.cleanup()));
-  await Promise.all(ECS.loopSystems.map(system => system.cleanup()));
+  for (const system of ECS.startSystems) {
+    await system.cleanup();
+  }
+  for (const system of ECS.loopSystems) {
+    await system.cleanup();
+  }
   ECS.allEntities.length = 0;
+  return;
 };
 
 // now do work with the update loops
@@ -145,7 +173,7 @@ ECS.loop = async () => {
   }
   const newStamp = performance.now();
   const delta = (newStamp - stamp) / 1000;
-  ECS.fps = Math.round(1/delta) + ' fps';
+  ECS.fps = Math.round(1/delta);
   stamp = newStamp;
   if (ECS.playing) {
     window.requestAnimationFrame(ECS.loop);

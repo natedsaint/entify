@@ -5,19 +5,25 @@
       type="image/png" 
       href="favicon.png">
   <style>
+  body {
+    background: #111;
+  }
   canvas {
     display: block;
     margin: 30px auto;
     background: #333;
   }
-  body {
-    background: #111;
-  }
-  #fps {
-    color: #eee;
-  }
   form {
     color: #eee;
+    position: fixed; 
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
+    padding:10px;
+  }
+  input[type="text"] {
+    border: solid 1px #aaa;
+    background:#eee;
+    padding: 4px;
   }
   label {
     width: 200px;

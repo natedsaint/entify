@@ -23,7 +23,6 @@ self.onmessage = (event) => {
         const otherPosition = otherEntity.components.position;
         const otherRadius = otherEntity.components.size.radius;
         const otherVelocity = otherEntity.components.velocity;
-        // TODO add velocity here to figure out if it'll intersect in the next step
         const newPosition = { x: position.x + velocity.x, y : position.y + velocity.y };
         const newOtherPosition = { x: otherPosition.x + otherVelocity.x, y : otherPosition.y + otherVelocity.y };
         const willIntersect = Math.hypot(newPosition.x-newOtherPosition.x, newPosition.y - newOtherPosition.y) <= (radius + otherRadius);
@@ -33,8 +32,6 @@ self.onmessage = (event) => {
           const mass1 = molecules1 * 0.1;
           const molecules2 = 4 * Math.PI * (otherRadius ** 2);
           const mass2 = molecules2 * 0.1;
-          // const mass1 = 2 ** radius;
-          // const mass2 = 2 ** otherRadius;
           const newVelX1 = (velocity.x * (mass1 - mass2) + (2 * mass2 * otherVelocity.x)) / (mass1 + mass2);
           const newVelY1 = (velocity.y * (mass1 - mass2) + (2 * mass2 * otherVelocity.y)) / (mass1 + mass2);
           velocity.x = newVelX1;
