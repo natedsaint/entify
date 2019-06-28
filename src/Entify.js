@@ -175,7 +175,7 @@ Entify.loop = async () => {
   }
   const newStamp = performance.now();
   const delta = (newStamp - stamp);
-  Entity.deltaTime = delta;
+  Entify.deltaTime = delta;
   const deltaSeconds = delta / 1000;
   Entify.fps = Math.round(1/deltaSeconds);
   stamp = newStamp;
