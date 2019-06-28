@@ -1,6 +1,12 @@
-# ENTIFY
+<p align="center">
+  <img src="/entify.png">
+</p>
 
-## ECS
+# FAQ
+
+## WTF IS THIS? 
+
+### ECS
 [Entity Component Systems](https://en.wikipedia.org/wiki/Entity_component_system) are a way of 
 designing systems around a [data-oriented design](https://en.wikipedia.org/wiki/Data-oriented_design) philosophy.
 
@@ -21,4 +27,6 @@ most forms of optimizations (rendering using canvas, lots of calculations) are e
 specific problems that most of these ECS implementatiins were not designed to address (specifically 
 using bleeding-edge -- aka not yet standardized-- technology like offscreen canvases and the performance api). 
 
-2. 
+2. I had some time to try to learn how to do some tech I'd never worked with for Unity hackweek, and after 
+repeatedly failing to get various other projects going I came back to this one to try to get it to a point
+where it was stable enough to build a game engine on top of it. I'm working on that now.
