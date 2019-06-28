@@ -174,8 +174,10 @@ Entify.loop = async () => {
     await system.work(Entify.allEntities);
   }
   const newStamp = performance.now();
-  const delta = (newStamp - stamp) / 1000;
-  Entify.fps = Math.round(1/delta);
+  const delta = (newStamp - stamp);
+  Entity.deltaTime = delta;
+  const deltaSeconds = delta / 1000;
+  Entify.fps = Math.round(1/deltaSeconds);
   stamp = newStamp;
   if (Entify.playing) {
     window.requestAnimationFrame(Entify.loop);
