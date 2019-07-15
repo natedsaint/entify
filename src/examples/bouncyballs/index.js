@@ -60,7 +60,3 @@ document.querySelector('#restart').addEventListener('click', async () => {
   Entify.restart();
   document.querySelector('#pause').innerHTML = PAUSE_TXT;
 });
-
-c.addEventListener('contextmenu', function(e) {
-  e.preventDefault();
-});

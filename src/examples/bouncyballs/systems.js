@@ -160,6 +160,9 @@ clickerSystem.setup = () => {
   Entify.globals.c.addEventListener('mouseup', () => {
     mousedown = false;
   });
+  Entify.globals.c.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
 };
 
 export default {
