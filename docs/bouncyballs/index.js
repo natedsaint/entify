@@ -1,4 +1,4 @@
-import Entify from './Entify.js';
+import Entify from 'https://raw.githubusercontent.com/natedsaint/entify/master/src/Entify.js';
 import Systems from './systems.js';
 
 let c;
