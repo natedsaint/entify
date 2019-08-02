@@ -30,8 +30,8 @@ generatorSystem.work = () => {
       col = 0;
       row++;
     }
-    const x = ( row + 1 ) * pixelsPerRow + 15;
-    const y = ( col + 1 ) * pixelsPerCol + 15;
+    const x = Utils.clamp(15, c.width - 15, ( row + 1 ) * pixelsPerRow);
+    const y = Utils.clamp(15, c.height - 15, ( col + 1 ) * pixelsPerCol);
     const position = { x, y };
     const xSign = (!!getRandomInt(1)) ? 1 : -1;
     const ySign = (!!getRandomInt(1)) ? 1 : -1;

@@ -4,7 +4,7 @@
   "description": "A framework for creating ECS architectures in JavaScript (es6)",
   "main": "src/Entify.js",
   "scripts": {
-    "docs": "parcel build src/examples/bouncyballs/index.html -d docs --public-url './' && cp src/examples/bouncyballs/*.js docs"
+    "docs": "rm -rf docs/* && parcel build src/examples/bouncyballs/index.html -d docs --public-url './' && cp src/examples/bouncyballs/*.js docs"
   },
   "repository": {
     "type": "git",

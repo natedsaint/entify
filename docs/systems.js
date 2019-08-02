@@ -9,6 +9,7 @@ const getRandomInt = Utils.getRandomInt;
 const generatorSystem = new Entify.System('generator');
 
 generatorSystem.work = () => {
+  console.warn(c.width, c.height);
   let numDots = generatorSystem.numDots;
   let ratio = c.width / c.height;
   let cols = Math.ceil(Math.sqrt(numDots * ratio));
@@ -30,8 +31,8 @@ generatorSystem.work = () => {
       col = 0;
       row++;
     }
-    const x = ( row + 1 ) * pixelsPerRow + 15;
-    const y = ( col + 1 ) * pixelsPerCol + 15;
+    const x = Utils.clamp(15, c.width - 15, ( row + 1 ) * pixelsPerRow);
+    const y = Utils.clamp(15, c.height - 15, ( col + 1 ) * pixelsPerCol);
     const position = { x, y };
     const xSign = (!!getRandomInt(1)) ? 1 : -1;
     const ySign = (!!getRandomInt(1)) ? 1 : -1;
