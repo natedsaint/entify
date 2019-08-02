@@ -1,4 +1,4 @@
-import Entify from './Entify.js';
+import Entify from '../../Entify.js';
 import Assemblages from './assemblages.js';
 import Utils from './util.js';
 

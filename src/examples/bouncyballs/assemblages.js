@@ -1,4 +1,4 @@
-import Entify from './Entify.js';
+import Entify from '../../Entify.js';
 import Components from './components.js';
 const Assemblages = {
   Dot: function(size, color, position, velocity) {

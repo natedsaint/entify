@@ -1,3 +1,4 @@
+import Entify from '../../Entify.js';
 import Systems from './systems.js';
 
 let c;
