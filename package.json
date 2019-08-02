@@ -4,7 +4,7 @@
   "description": "A framework for creating ECS architectures in JavaScript (es6)",
   "main": "src/Entify.js",
   "scripts": {
-    "docs": "parcel build src/examples/bouncyballs/index.html -d docs --public-url './'"
+    "docs": "parcel build src/examples/bouncyballs/index.html -d docs --public-url './' && cp src/examples/bouncyballs/*.js docs"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,9 @@
   "homepage": "https://github.com/natedsaint/entify#readme",
   "dependencies": {
     "parcel-bundler": "^1.12.3"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0"
   }
 }
